@@ -1,0 +1,85 @@
+name: dockercompose16313003277215868301
+services:
+  rabbitmqconsumer:
+    build:
+      context: E:\.1AAACode\C#\TaskManagementAPI
+      dockerfile: RabbitMQConsumer/Dockerfile
+    environment:
+      DOTNET_ENVIRONMENT: Development
+    image: rabbitmqconsumer
+    networks:
+      default: null
+    volumes:
+      - type: bind
+        source: C:\Users\wq\AppData\Roaming/Microsoft/UserSecrets
+        target: /home/app/.microsoft/usersecrets
+        read_only: true
+        bind: {}
+      - type: bind
+        source: C:\Users\wq\AppData\Roaming/Microsoft/UserSecrets
+        target: /root/.microsoft/usersecrets
+        read_only: true
+        bind: {}
+  taskmanagementapi:
+    build:
+      context: E:\.1AAACode\C#\TaskManagementAPI
+      dockerfile: Dockerfile
+      args:
+        BUILD_CONFIGURATION: Debug
+        LAUNCHING_FROM_VS: "true"
+      labels:
+        com.microsoft.created-by: visual-studio
+        com.microsoft.visual-studio.project-name: TaskManagementAPI
+    entrypoint:
+      - dotnet
+      - --roll-forward
+      - Major
+      - /VSTools/DistrolessHelper/DistrolessHelper.dll
+      - --wait
+    labels:
+      com.microsoft.visual-studio.project-name: TaskManagementAPI
+      com.microsoft.visualstudio.debuggee.arguments: ' --additionalProbingPath /.nuget/packages --additionalProbingPath /.nuget/fallbackpackages  "/app/TaskManagementAPI.dll"'
+      com.microsoft.visualstudio.debuggee.killprogram: dotnet --roll-forward Major /VSTools/DistrolessHelper/DistrolessHelper.dll --stop dotnet
+      com.microsoft.visualstudio.debuggee.program: dotnet
+      com.microsoft.visualstudio.debuggee.workingdirectory: /app
+    networks:
+      default: null
+    tty: true
+    volumes:
+      - type: bind
+        source: C:\Users\wq\vsdbg\vs2017u5
+        target: /remote_debugger
+        bind: {}
+      - type: bind
+        source: C:\Users\wq\AppData\Roaming\ASP.NET\Https
+        target: /root/.aspnet/https
+        read_only: true
+        bind: {}
+      - type: bind
+        source: C:\Users\wq\AppData\Roaming\ASP.NET\Https
+        target: /home/app/.aspnet/https
+        read_only: true
+        bind: {}
+      - type: bind
+        source: C:\Users\wq\AppData\Roaming\Microsoft\UserSecrets
+        target: /root/.microsoft/usersecrets
+        read_only: true
+        bind: {}
+      - type: bind
+        source: C:\Users\wq\AppData\Roaming\Microsoft\UserSecrets
+        target: /home/app/.microsoft/usersecrets
+        read_only: true
+        bind: {}
+      - type: bind
+        source: D:\vs\MSBuild\Sdks\Microsoft.Docker.Sdk\tools\linux-x64\net8.0
+        target: /VSTools
+        read_only: true
+        bind: {}
+      - type: bind
+        source: D:\vs\Common7\IDE\CommonExtensions\Microsoft\HotReload
+        target: /HotReloadAgent
+        read_only: true
+        bind: {}
+networks:
+  default:
+    name: dockercompose16313003277215868301_default

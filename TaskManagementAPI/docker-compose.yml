@@ -1,0 +1,187 @@
+﻿version: '3.8'
+
+services:
+  # 1. 定义 PostgreSQL 服务
+  postgres_db: # 服务名，API容器会通过这个名称来访问它
+    image: postgres:16-alpine
+    container_name: my-postgres-compose # 容器名，便于识别
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}  # 由.env环境变量注入
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - my-dev-network
+
+  # 2. 定义 API 服务
+  taskapi:
+    build: . # 使用当前目录的 Dockerfile 构建镜像
+    container_name: my-taskapi-compose
+    ports:
+      - "5000:8080" # 将你主机的5000端口映射到容器的8080端口
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__DefaultConnection=Host=postgres_db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      - Redis__ConnectionString=redis_cache:6379
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__UserName=${RABBITMQ_USER}
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD}
+      # 关键！通过服务名 postgres_db 连接数据库
+      - ConnectionStrings__DefaultConnection=Host=postgres_db;Port=5432;Database=mydb;Username=admin;Password=123456
+    depends_on: # 声明依赖，确保 postgres_db 先启动
+      - postgres_db
+      - redis_cache
+      - rabbitmq 
+    networks:
+      - my-dev-network
+
+  # 3. 定义 React前端 服务
+  frontend:
+    build:
+      context: ../../React/task-management-frontend-redux-ts   # 你的前端项目路径（相对路径）
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+    container_name: my-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - taskapi
+    networks:
+      - my-dev-network
+
+  # 4. 定义 Redis 服务
+  redis_master: # redis主库
+    image: redis:7-alpine
+    container_name: redis-master
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server # 启动 Redis 服务进程
+      --requirepass ${REDIS_PASSWORD} #设置密码，客户端连接时需要提供 AUTH 认证
+      --appendonly yes # 开启 AOF 持久化
+      --appendfsync everysec # 每秒同步一次 AOF 文件
+      --save 900 1 # 900 秒内至少 1 次写入则触发 RDB 快照
+      --save 300 10 # 300 秒内至少 10 次写入则触发 RDB 快照
+      --save 60 10000 # 60 秒内至少 10000 次写入则触发 RDB 快照
+      --min-replicas-to-write 1 # 至少 1 个从节点同步成功，主节点才接受写请求（避免脑裂）
+      --min-replicas-max-lag 10 # 从节点的延迟不能超过 10 秒
+    volumes:
+      - redis-master-data:/data   # 持久化目录
+    networks: 
+      - my-dev-network
+  
+  redis_slave_1:  # redis从库
+    image: redis:7-alpine
+    container_name: redis-slave-1
+    ports:
+      - "6380:6379"
+    command: >
+      redis-server
+      --slaveof redis_master 6379 # 指定该实例作为 redis_master 的从节点，同步主节点的数据
+      --requirepass ${REDIS_PASSWORD}
+      --masterauth ${REDIS_PASSWORD} # 连接主节点时使用的密码（必须和主节点密码一致）
+    depends_on: 
+      - redis_master
+    networks: 
+      - my-dev-network
+
+  redis_slave_2: # redis从库
+    image: redis:7-alpine
+    container_name: redis-slave-2
+    ports:
+      - "6381:6379"
+    command: redis-server --slaveof redis_master 6379 --requirepass ${REDIS_PASSWORD} --masterauth ${REDIS_PASSWORD}
+    depends_on: 
+      - redis_master
+    networks: 
+      - my-dev-network
+
+  redis_sentinel_1:  # redis哨兵。 Sentinel 本身是一个分布式系统，必须配置奇数个（通常 3 个）哨兵才能工作
+    image: redis:7-alpine
+    container_name: redis-sentinel-1
+    ports:
+      - "26379:26379"
+    command: >
+      redis-sentinel # 启动 Redis Sentinel（哨兵）进程
+      /usr/local/etc/redis/sentinel.conf # 哨兵配置文件路径。哨兵必须通过配置文件启动（不能用命令行参数动态配置），因为哨兵需要持久化状态（记录当前主节点是谁、从节点列表等）。
+    volumes:
+      - ./redis/sentinel-1.conf:/usr/local/etc/redis/sentinel.conf
+    depends_on:
+      - redis_master
+      - redis_slave_1
+      - redis_slave_2
+    networks:
+      - my-dev-network 
+
+  redis_sentinel_2:  # redis哨兵
+    image: redis:7-alpine
+    container_name: redis-sentinel-2
+    ports:
+      - "26380:26379"
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    volumes:
+      - ./redis/sentinel-2.conf:/usr/local/etc/redis/sentinel.conf
+    depends_on:
+      - redis_master
+      - redis_slave_1
+      - redis_slave_2
+    networks:
+      - my-dev-network 
+
+  redis_sentinel_3:  # redis哨兵
+    image: redis:7-alpine
+    container_name: redis-sentinel-3
+    ports:
+      - "26381:26379"
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    volumes:
+      - ./redis/sentinel-3.conf:/usr/local/etc/redis/sentinel.conf
+    depends_on:
+      - redis_master
+      - redis_slave_1
+      - redis_slave_2
+    networks:
+      - my-dev-network 
+
+  # 5. 定义 RabbitMQ 服务
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: my-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: 123456
+    networks:
+      - my-dev-network
+
+
+
+  # 6. 定义 RabbitMQ消费者 服务
+  rabbmqconsumer:
+    build:
+      context: ../RabbitMQConsumer
+      dockerfile: Dockerfile
+    container_name: my-consumer
+    environment:
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__UserName=admin
+      - RabbitMQ__Password=123456
+    depends_on:
+      - rabbitmq
+    networks:
+      - my-dev-network
+
+# 定义网络和卷
+networks:
+  my-dev-network: # 自定义网络，让服务可以互相发现
+    driver: bridge
+
+volumes:
+  postgres-data: # 用于持久化 PostgreSQL 数据

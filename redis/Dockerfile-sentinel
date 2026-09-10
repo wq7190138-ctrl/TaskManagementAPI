@@ -1,0 +1,25 @@
+﻿FROM redis:7-alpine
+
+COPY sentinel.conf /usr/local/etc/redis/sentinel.conf
+
+RUN echo '#!/bin/sh' > /usr/local/bin/start-sentinel.sh && \
+    echo 'HOST="redis_master"' >> /usr/local/bin/start-sentinel.sh && \
+    echo 'echo "⏳ 解析 $HOST IP 地址..."' >> /usr/local/bin/start-sentinel.sh && \
+    echo 'while true; do' >> /usr/local/bin/start-sentinel.sh && \
+    echo '    IP=$(getent hosts $HOST | awk '\''{print $1}'\'')' >> /usr/local/bin/start-sentinel.sh && \
+    echo '    if [ -n "$IP" ]; then' >> /usr/local/bin/start-sentinel.sh && \
+    echo '        echo "✅ 解析成功: $HOST -> $IP"' >> /usr/local/bin/start-sentinel.sh && \
+    echo '        break' >> /usr/local/bin/start-sentinel.sh && \
+    echo '    fi' >> /usr/local/bin/start-sentinel.sh && \
+    echo '    echo "⏳ 等待中..."' >> /usr/local/bin/start-sentinel.sh && \
+    echo '    sleep 1' >> /usr/local/bin/start-sentinel.sh && \
+    echo 'done' >> /usr/local/bin/start-sentinel.sh && \
+    echo 'cp /usr/local/etc/redis/sentinel.conf /usr/local/etc/redis/sentinel-temp.conf' >> /usr/local/bin/start-sentinel.sh && \
+    echo 'sed -i "s/redis_master/$IP/g" /usr/local/etc/redis/sentinel-temp.conf' >> /usr/local/bin/start-sentinel.sh && \
+    echo 'echo "✅ 配置已生成:"' >> /usr/local/bin/start-sentinel.sh && \
+    echo 'cat /usr/local/etc/redis/sentinel-temp.conf' >> /usr/local/bin/start-sentinel.sh && \
+    echo 'echo "🚀 启动哨兵..."' >> /usr/local/bin/start-sentinel.sh && \
+    echo 'exec redis-sentinel /usr/local/etc/redis/sentinel-temp.conf' >> /usr/local/bin/start-sentinel.sh && \
+    chmod +x /usr/local/bin/start-sentinel.sh
+
+ENTRYPOINT ["/usr/local/bin/start-sentinel.sh"]

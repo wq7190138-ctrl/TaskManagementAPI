@@ -1,0 +1,363 @@
+name: dockercompose16313003277215868301
+services:
+  frontend:
+    build:
+      context: E:\.1AAACode\React\task-management-frontend-redux-ts
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+    container_name: my-frontend
+    depends_on:
+      taskmanagementapi_1:
+        condition: service_started
+        required: true
+      taskmanagementapi_2:
+        condition: service_started
+        required: true
+    networks:
+      my-dev-network: null
+    ports:
+      - mode: ingress
+        target: 80
+        published: "5173"
+        protocol: tcp
+  postgres_db:
+    container_name: my-postgres-compose
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_PASSWORD: "123456"
+      POSTGRES_USER: admin
+    image: postgres:16-alpine
+    networks:
+      my-dev-network: null
+    ports:
+      - mode: ingress
+        target: 5432
+        published: "5432"
+        protocol: tcp
+    volumes:
+      - type: volume
+        source: postgres-data
+        target: /var/lib/postgresql/data
+        volume: {}
+  rabbitmq:
+    container_name: my-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_PASS: "123456"
+      RABBITMQ_DEFAULT_USER: admin
+    image: rabbitmq:3-management-alpine
+    networks:
+      my-dev-network: null
+    ports:
+      - mode: ingress
+        target: 5672
+        published: "5672"
+        protocol: tcp
+      - mode: ingress
+        target: 15672
+        published: "15672"
+        protocol: tcp
+  rabbitmqconsumer:
+    build:
+      context: E:\.1AAACode\C#\TaskManagementAPI\RabbitMQConsumer
+      dockerfile: Dockerfile
+    container_name: my-consumer
+    depends_on:
+      rabbitmq:
+        condition: service_started
+        required: true
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Password: "123456"
+      RabbitMQ__Port: "5672"
+      RabbitMQ__UserName: admin
+    networks:
+      my-dev-network: null
+  redis_master:
+    command:
+      - redis-server
+      - --requirepass
+      - "123456"
+      - --masterauth
+      - "123456"
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+      - --save
+      - "900"
+      - "1"
+      - --save
+      - "300"
+      - "10"
+      - --save
+      - "60"
+      - "10000"
+      - --min-replicas-to-write
+      - "1"
+      - --min-replicas-max-lag
+      - "10"
+    container_name: redis-master
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - -a
+        - "123456"
+        - ping
+      timeout: 3s
+      interval: 5s
+      retries: 5
+    image: redis:7-alpine
+    networks:
+      my-dev-network: null
+    ports:
+      - mode: ingress
+        target: 6379
+        published: "6379"
+        protocol: tcp
+    volumes:
+      - type: volume
+        source: redis-master-data
+        target: /data
+        volume: {}
+  redis_sentinel_1:
+    build:
+      context: E:\.1AAACode\C#\TaskManagementAPI\redis
+      dockerfile: Dockerfile-sentinel
+    command: []
+    container_name: redis-sentinel-1
+    depends_on:
+      redis_master:
+        condition: service_healthy
+        required: true
+      redis_slave_1:
+        condition: service_healthy
+        required: true
+      redis_slave_2:
+        condition: service_healthy
+        required: true
+    networks:
+      my-dev-network: null
+    ports:
+      - mode: ingress
+        target: 26379
+        published: "26379"
+        protocol: tcp
+    restart: always
+  redis_sentinel_2:
+    build:
+      context: E:\.1AAACode\C#\TaskManagementAPI\redis
+      dockerfile: Dockerfile-sentinel
+    command: []
+    container_name: redis-sentinel-2
+    depends_on:
+      redis_master:
+        condition: service_healthy
+        required: true
+      redis_slave_1:
+        condition: service_healthy
+        required: true
+      redis_slave_2:
+        condition: service_healthy
+        required: true
+    networks:
+      my-dev-network: null
+    ports:
+      - mode: ingress
+        target: 26379
+        published: "26380"
+        protocol: tcp
+    restart: always
+  redis_sentinel_3:
+    build:
+      context: E:\.1AAACode\C#\TaskManagementAPI\redis
+      dockerfile: Dockerfile-sentinel
+    command: []
+    container_name: redis-sentinel-3
+    depends_on:
+      redis_master:
+        condition: service_healthy
+        required: true
+      redis_slave_1:
+        condition: service_healthy
+        required: true
+      redis_slave_2:
+        condition: service_healthy
+        required: true
+    networks:
+      my-dev-network: null
+    ports:
+      - mode: ingress
+        target: 26379
+        published: "26381"
+        protocol: tcp
+    restart: always
+  redis_slave_1:
+    command:
+      - redis-server
+      - --slaveof
+      - redis_master
+      - "6379"
+      - --requirepass
+      - "123456"
+      - --masterauth
+      - "123456"
+    container_name: redis-slave-1
+    depends_on:
+      redis_master:
+        condition: service_healthy
+        required: true
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - -a
+        - "123456"
+        - ping
+      timeout: 3s
+      interval: 5s
+      retries: 5
+    image: redis:7-alpine
+    networks:
+      my-dev-network: null
+    ports:
+      - mode: ingress
+        target: 6379
+        published: "6380"
+        protocol: tcp
+  redis_slave_2:
+    command:
+      - redis-server
+      - --slaveof
+      - redis_master
+      - "6379"
+      - --requirepass
+      - "123456"
+      - --masterauth
+      - "123456"
+    container_name: redis-slave-2
+    depends_on:
+      redis_master:
+        condition: service_healthy
+        required: true
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - -a
+        - "123456"
+        - ping
+      timeout: 3s
+      interval: 5s
+      retries: 5
+    image: redis:7-alpine
+    networks:
+      my-dev-network: null
+    ports:
+      - mode: ingress
+        target: 6379
+        published: "6381"
+        protocol: tcp
+  taskmanagementapi_1:
+    build:
+      context: E:\.1AAACode\C#\TaskManagementAPI\TaskManagementAPI
+      dockerfile: Dockerfile
+    container_name: my-taskapi-compose-1
+    depends_on:
+      postgres_db:
+        condition: service_started
+        required: true
+      rabbitmq:
+        condition: service_started
+        required: true
+      redis_master:
+        condition: service_started
+        required: true
+      redis_sentinel_1:
+        condition: service_started
+        required: true
+      redis_sentinel_2:
+        condition: service_started
+        required: true
+      redis_sentinel_3:
+        condition: service_started
+        required: true
+      redis_slave_1:
+        condition: service_started
+        required: true
+      redis_slave_2:
+        condition: service_started
+        required: true
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=postgres_db;Port=5432;Database=mydb;Username=admin;Password=123456
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Password: "123456"
+      RabbitMQ__Port: "5672"
+      RabbitMQ__UserName: admin
+      Redis__ConnectionString: redis-sentinel-1:26379,redis-sentinel-2:26379,redis-sentinel-3:26379,serviceName=mymaster,password=123456
+    networks:
+      my-dev-network: null
+    ports:
+      - mode: ingress
+        target: 8080
+        published: "5000"
+        protocol: tcp
+  taskmanagementapi_2:
+    build:
+      context: E:\.1AAACode\C#\TaskManagementAPI\TaskManagementAPI
+      dockerfile: Dockerfile
+    container_name: my-taskapi-compose-2
+    depends_on:
+      postgres_db:
+        condition: service_started
+        required: true
+      rabbitmq:
+        condition: service_started
+        required: true
+      redis_master:
+        condition: service_started
+        required: true
+      redis_sentinel_1:
+        condition: service_started
+        required: true
+      redis_sentinel_2:
+        condition: service_started
+        required: true
+      redis_sentinel_3:
+        condition: service_started
+        required: true
+      redis_slave_1:
+        condition: service_started
+        required: true
+      redis_slave_2:
+        condition: service_started
+        required: true
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=postgres_db;Port=5432;Database=mydb;Username=admin;Password=123456
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Password: "123456"
+      RabbitMQ__Port: "5672"
+      RabbitMQ__UserName: admin
+      Redis__ConnectionString: redis-sentinel-1:26379,redis-sentinel-2:26379,redis-sentinel-3:26379,serviceName=mymaster,password=123456
+    networks:
+      my-dev-network: null
+    ports:
+      - mode: ingress
+        target: 8080
+        published: "5001"
+        protocol: tcp
+networks:
+  my-dev-network:
+    name: dockercompose16313003277215868301_my-dev-network
+    driver: bridge
+volumes:
+  postgres-data:
+    name: dockercompose16313003277215868301_postgres-data
+  redis-master-data:
+    name: dockercompose16313003277215868301_redis-master-data

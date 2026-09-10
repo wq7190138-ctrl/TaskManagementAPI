@@ -1,0 +1,75 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36717.8
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskManagementAPI", "TaskManagementAPI\TaskManagementAPI.csproj", "{B92B37EE-E959-4109-8876-9C4A9D1408E1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMQConsumer", "RabbitMQConsumer\RabbitMQConsumer.csproj", "{3F5655B5-70A3-4EFA-90B1-8B0E7FFBD3CA}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{81DDED9D-158B-E303-5F62-77A2896D2A5A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决方案项", "{9FA3D6BD-1EC1-3BA5-80CB-CE02773A58D5}"
+	ProjectSection(SolutionItems) = preProject
+		redis\Dockerfile-sentinel = redis\Dockerfile-sentinel
+		redis\sentinel-1.conf = redis\sentinel-1.conf
+		redis\sentinel-2.conf = redis\sentinel-2.conf
+		redis\sentinel-3.conf = redis\sentinel-3.conf
+		redis\sentinel.conf = redis\sentinel.conf
+		wait-for-dns.sh = wait-for-dns.sh
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B92B37EE-E959-4109-8876-9C4A9D1408E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B92B37EE-E959-4109-8876-9C4A9D1408E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B92B37EE-E959-4109-8876-9C4A9D1408E1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B92B37EE-E959-4109-8876-9C4A9D1408E1}.Debug|x64.Build.0 = Debug|Any CPU
+		{B92B37EE-E959-4109-8876-9C4A9D1408E1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B92B37EE-E959-4109-8876-9C4A9D1408E1}.Debug|x86.Build.0 = Debug|Any CPU
+		{B92B37EE-E959-4109-8876-9C4A9D1408E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B92B37EE-E959-4109-8876-9C4A9D1408E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B92B37EE-E959-4109-8876-9C4A9D1408E1}.Release|x64.ActiveCfg = Release|Any CPU
+		{B92B37EE-E959-4109-8876-9C4A9D1408E1}.Release|x64.Build.0 = Release|Any CPU
+		{B92B37EE-E959-4109-8876-9C4A9D1408E1}.Release|x86.ActiveCfg = Release|Any CPU
+		{B92B37EE-E959-4109-8876-9C4A9D1408E1}.Release|x86.Build.0 = Release|Any CPU
+		{3F5655B5-70A3-4EFA-90B1-8B0E7FFBD3CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F5655B5-70A3-4EFA-90B1-8B0E7FFBD3CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F5655B5-70A3-4EFA-90B1-8B0E7FFBD3CA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3F5655B5-70A3-4EFA-90B1-8B0E7FFBD3CA}.Debug|x64.Build.0 = Debug|Any CPU
+		{3F5655B5-70A3-4EFA-90B1-8B0E7FFBD3CA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3F5655B5-70A3-4EFA-90B1-8B0E7FFBD3CA}.Debug|x86.Build.0 = Debug|Any CPU
+		{3F5655B5-70A3-4EFA-90B1-8B0E7FFBD3CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F5655B5-70A3-4EFA-90B1-8B0E7FFBD3CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F5655B5-70A3-4EFA-90B1-8B0E7FFBD3CA}.Release|x64.ActiveCfg = Release|Any CPU
+		{3F5655B5-70A3-4EFA-90B1-8B0E7FFBD3CA}.Release|x64.Build.0 = Release|Any CPU
+		{3F5655B5-70A3-4EFA-90B1-8B0E7FFBD3CA}.Release|x86.ActiveCfg = Release|Any CPU
+		{3F5655B5-70A3-4EFA-90B1-8B0E7FFBD3CA}.Release|x86.Build.0 = Release|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Debug|x64.Build.0 = Debug|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Debug|x86.Build.0 = Debug|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|x64.ActiveCfg = Release|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|x64.Build.0 = Release|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|x86.ActiveCfg = Release|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {11D96CE0-81D9-458C-A843-9CD268D52DAF}
+	EndGlobalSection
+EndGlobal

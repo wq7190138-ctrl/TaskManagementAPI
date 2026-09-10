@@ -1,0 +1,64 @@
+name: dockercompose16313003277215868301
+services:
+  rabbitmqconsumer:
+    build:
+      context: E:\.1AAACode\C#\TaskManagementAPI
+      dockerfile: RabbitMQConsumer/Dockerfile
+    environment:
+      DOTNET_ENVIRONMENT: Development
+    image: rabbitmqconsumer
+    networks:
+      default: null
+    volumes:
+      - type: bind
+        source: C:\Users\wq\AppData\Roaming/Microsoft/UserSecrets
+        target: /home/app/.microsoft/usersecrets
+        read_only: true
+        bind: {}
+      - type: bind
+        source: C:\Users\wq\AppData\Roaming/Microsoft/UserSecrets
+        target: /root/.microsoft/usersecrets
+        read_only: true
+        bind: {}
+  taskmanagementapi:
+    build:
+      context: E:\.1AAACode\C#\TaskManagementAPI
+      dockerfile: TaskManagementAPI/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ASPNETCORE_HTTPS_PORTS: "8081"
+    image: taskmanagementapi
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 8080
+        protocol: tcp
+      - mode: ingress
+        target: 8081
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: C:\Users\wq\AppData\Roaming/Microsoft/UserSecrets
+        target: /home/app/.microsoft/usersecrets
+        read_only: true
+        bind: {}
+      - type: bind
+        source: C:\Users\wq\AppData\Roaming/Microsoft/UserSecrets
+        target: /root/.microsoft/usersecrets
+        read_only: true
+        bind: {}
+      - type: bind
+        source: C:\Users\wq\AppData\Roaming/ASP.NET/Https
+        target: /home/app/.aspnet/https
+        read_only: true
+        bind: {}
+      - type: bind
+        source: C:\Users\wq\AppData\Roaming/ASP.NET/Https
+        target: /root/.aspnet/https
+        read_only: true
+        bind: {}
+networks:
+  default:
+    name: dockercompose16313003277215868301_default
