@@ -99,7 +99,7 @@ jobs:
   deploy:
     name: Deploy to Server
     needs: [ build-api, build-consumer ]  # 👈 依赖
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     # ⑥ if：只在 main 分支执行
     if: github.ref == 'refs/heads/main'
 
@@ -110,10 +110,10 @@ jobs:
       # 暂时只是打印，等你准备好了再换成真实 SSH 部署
       - name: Show deployment info
         run: |
-          echo "🚀 准备部署"
-          echo "API 镜像: ${{ env.IMAGE_PREFIX }}/taskapi:${{ github.sha }}"
-          echo "Consumer 镜像: ${{ env.IMAGE_PREFIX }}/rabbitmqconsumer:${{ github.sha }}"
-          echo "Frontend 镜像: ${{ env.IMAGE_PREFIX }}/frontend:${{ github.sha }}"
-          echo "提交者: ${{ github.actor }}"
-          echo "提交信息: ${{ github.event.head_commit.message }}"
-  # trigger CD
+          docker pull ${{ secrets.DOCKER_USERNAME }}/taskapi:latest
+          docker pull ${{ secrets.DOCKER_USERNAME }}/rabbitmqconsumer:latest
+
+      - name: Deploy with docker-compose
+        run: docker-compose up -d
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}

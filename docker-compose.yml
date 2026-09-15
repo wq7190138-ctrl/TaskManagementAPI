@@ -14,9 +14,10 @@ services:
       - my-dev-network
 
   taskmanagementapi_1:
-    build:
-      context: ./TaskManagementAPI
-      dockerfile: Dockerfile
+    image: ${DOCKER_USERNAME}/taskapi:latest
+    # build:
+    #   context: ./TaskManagementAPI
+    #   dockerfile: Dockerfile
     container_name: my-taskapi-compose-1
     ports:
       - "5000:8080"
@@ -43,9 +44,10 @@ services:
       - my-dev-network
 
   taskmanagementapi_2:
-    build:
-      context: ./TaskManagementAPI
-      dockerfile: Dockerfile
+    image: ${DOCKER_USERNAME}/taskapi:latest
+    # build:
+    #   context: ./TaskManagementAPI
+    #   dockerfile: Dockerfile
     container_name: my-taskapi-compose-2
     ports:
       - "5001:8080"
@@ -281,9 +283,10 @@ services:
   #     - rabbitmq3
 
   rabbitmqconsumer:
-    build:
-      context: ./RabbitMQConsumer
-      dockerfile: Dockerfile
+    image: ${DOCKER_USERNAME}/rabbitmqconsumer:latest
+    # build:
+    #   context: ./RabbitMQConsumer
+    #   dockerfile: Dockerfile
     container_name: my-consumer
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
