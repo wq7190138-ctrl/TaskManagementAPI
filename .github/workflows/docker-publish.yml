@@ -116,3 +116,4 @@ jobs:
           echo "Frontend 镜像: ${{ env.IMAGE_PREFIX }}/frontend:${{ github.sha }}"
           echo "提交者: ${{ github.actor }}"
           echo "提交信息: ${{ github.event.head_commit.message }}"
+  # trigger CD
