@@ -31,7 +31,7 @@ services:
       - RabbitMQ__Password=${RABBITMQ_PASSWORD}
       - ASPNETCORE_URLS=http://+:8080
     healthcheck:
-     test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+     test: ["CMD", "wget", "-qO-", "http://localhost:8080/health/live"]
      interval: 10s
      timeout: 5s
      retries: 3
@@ -66,7 +66,7 @@ services:
       - RabbitMQ__Password=${RABBITMQ_PASSWORD}
       - ASPNETCORE_URLS=http://+:8080
     healthcheck:
-     test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+     test: ["CMD", "wget", "-qO-", "http://localhost:8080/health/live"]
      interval: 10s
      timeout: 5s
      retries: 3
