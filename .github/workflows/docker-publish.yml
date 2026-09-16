@@ -121,7 +121,6 @@ jobs:
           $env_content += "VITE_API_URL=${{ secrets.VITE_API_URL }}`n"
           [System.IO.File]::WriteAllText("$PWD\.env", $env_content)
 
-      # 👇 带重试的拉取（用 SHA 标签）
       - name: Pull latest images
         shell: powershell
         run: |
@@ -148,14 +147,12 @@ jobs:
         run: |
           docker compose up -d
 
-          # 等待 15 秒让容器启动
           Start-Sleep -Seconds 15
 
-          # 检查 API 健康状态
           $health = docker inspect --format='{{.State.Health.Status}}' my-taskapi-compose-1 2>$null
           if ($health -ne "healthy") {
-            Write-Host "API 健康检查状态: $health"
+            Write-Host "Health check status: $health"
             docker logs my-taskapi-compose-1 --tail 50
-            throw "API 健康检查失败"
+            throw "API health check failed"
           }
-          Write-Host "✅ 部署成功，API 健康检查通过"
+          Write-Host "Deployment successful. API is healthy."
