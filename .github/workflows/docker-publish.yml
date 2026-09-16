@@ -106,29 +106,56 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 👇 生成 .env 文件（注入到 Runner 工作目录）
       - name: Create .env file
         shell: powershell
         run: |
-          @"
-          DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
-          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
-          RABBITMQ_USER=${{ secrets.RABBITMQ_USER }}
-          RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}
-          ASPNETCORE_ENVIRONMENT=${{ secrets.ASPNETCORE_ENVIRONMENT }}
-          VITE_API_URL=${{ secrets.VITE_API_URL }}
-          "@ | Out-File -FilePath .env -Encoding utf8
+          $env_content = "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}`n"
+          $env_content += "TAG=${{ github.sha }}`n"
+          $env_content += "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}`n"
+          $env_content += "POSTGRES_USER=${{ secrets.POSTGRES_USER }}`n"
+          $env_content += "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}`n"
+          $env_content += "POSTGRES_DB=${{ secrets.POSTGRES_DB }}`n"
+          $env_content += "RABBITMQ_USER=${{ secrets.RABBITMQ_USER }}`n"
+          $env_content += "RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}`n"
+          $env_content += "ASPNETCORE_ENVIRONMENT=${{ secrets.ASPNETCORE_ENVIRONMENT }}`n"
+          $env_content += "VITE_API_URL=${{ secrets.VITE_API_URL }}`n"
+          [System.IO.File]::WriteAllText("$PWD\.env", $env_content)
 
+      # 👇 带重试的拉取（用 SHA 标签）
       - name: Pull latest images
         shell: powershell
         run: |
-          docker pull ${{ secrets.DOCKER_USERNAME }}/taskapi:latest
-          docker pull ${{ secrets.DOCKER_USERNAME }}/rabbitmqconsumer:latest
+          $ErrorActionPreference = "Stop"
+          $maxRetries = 3
+          $images = @(
+            "${{ secrets.DOCKER_USERNAME }}/taskapi:${{ github.sha }}",
+            "${{ secrets.DOCKER_USERNAME }}/rabbitmqconsumer:${{ github.sha }}"
+          )
+          foreach ($img in $images) {
+            $success = $false
+            for ($i = 1; $i -le $maxRetries; $i++) {
+              Write-Host "Attempt $i to pull $img"
+              docker pull $img
+              if ($LASTEXITCODE -eq 0) { $success = $true; break }
+              Write-Host "Pull failed, retrying in 5 seconds..."
+              Start-Sleep -Seconds 5
+            }
+            if (-not $success) { throw "Failed to pull $img after $maxRetries attempts" }
+          }
 
       - name: Deploy with docker-compose
         shell: powershell
-        run: docker compose up -d
-        #
+        run: |
+          docker compose up -d
+
+          # 等待 15 秒让容器启动
+          Start-Sleep -Seconds 15
+
+          # 检查 API 健康状态
+          $health = docker inspect --format='{{.State.Health.Status}}' my-taskapi-compose-1 2>$null
+          if ($health -ne "healthy") {
+            Write-Host "API 健康检查状态: $health"
+            docker logs my-taskapi-compose-1 --tail 50
+            throw "API 健康检查失败"
+          }
+          Write-Host "✅ 部署成功，API 健康检查通过"  
