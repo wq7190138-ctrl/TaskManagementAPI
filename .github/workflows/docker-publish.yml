@@ -131,3 +131,4 @@ jobs:
       - name: Deploy with docker-compose
         shell: powershell
         run: docker compose up -d
+        #
