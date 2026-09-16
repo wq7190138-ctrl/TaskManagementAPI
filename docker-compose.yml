@@ -29,7 +29,6 @@ services:
       - RabbitMQ__Port=5672
       - RabbitMQ__UserName=${RABBITMQ_USER}
       - RabbitMQ__Password=${RABBITMQ_PASSWORD}
-      - ConnectionStrings__DefaultConnection=Host=postgres_db;Port=5432;Database=mydb;Username=admin;Password=123456
       - ASPNETCORE_URLS=http://+:8080
     depends_on:
       - postgres_db
@@ -59,7 +58,6 @@ services:
       - RabbitMQ__Port=5672
       - RabbitMQ__UserName=${RABBITMQ_USER}
       - RabbitMQ__Password=${RABBITMQ_PASSWORD}
-      - ConnectionStrings__DefaultConnection=Host=postgres_db;Port=5432;Database=mydb;Username=admin;Password=123456
       - ASPNETCORE_URLS=http://+:8080
     depends_on:
       - postgres_db

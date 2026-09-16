@@ -98,22 +98,36 @@ jobs:
   # ============================================================
   deploy:
     name: Deploy to Server
-    needs: [ build-api, build-consumer ]  # 👈 依赖
+    needs: [ build-api, build-consumer ]
     runs-on: self-hosted
-    # ⑥ if：只在 main 分支执行
     if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 暂时只是打印，等你准备好了再换成真实 SSH 部署
-      - name: Show deployment info
+      # 👇 生成 .env 文件（注入到 Runner 工作目录）
+      - name: Create .env file
+        shell: pwsh
+        run: |
+          @"
+          DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          RABBITMQ_USER=${{ secrets.RABBITMQ_USER }}
+          RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}
+          ASPNETCORE_ENVIRONMENT=${{ secrets.ASPNETCORE_ENVIRONMENT }}
+          VITE_API_URL=${{ secrets.VITE_API_URL }}
+          "@ | Out-File -FilePath .env -Encoding utf8
+
+      - name: Pull latest images
+        shell: pwsh
         run: |
           docker pull ${{ secrets.DOCKER_USERNAME }}/taskapi:latest
           docker pull ${{ secrets.DOCKER_USERNAME }}/rabbitmqconsumer:latest
 
       - name: Deploy with docker-compose
-        run: docker-compose up -d
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        shell: pwsh
+        run: docker compose up -d
