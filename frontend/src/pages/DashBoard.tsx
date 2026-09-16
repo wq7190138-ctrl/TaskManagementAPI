@@ -7,7 +7,7 @@ export default function DashBoard() {
         <div className={styles.container}>
             <div className={styles.header}>
                 <h1 className={styles.title}>
-                    <span className={styles.titleIcon}>📋</span>项目看板
+                    <span className={styles.titleIcon}>📋</span>项目看板1
                 </h1>
             </div>
             <StatsBoard />
