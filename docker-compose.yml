@@ -84,10 +84,11 @@ services:
       - my-dev-network
 
   frontend:
-    build:
-      context: ../../React/task-management-frontend-redux-ts 
-      args:
-        VITE_API_URL: ${VITE_API_URL}
+    image: ${DOCKER_USERNAME}/frontend:${TAG:-latest}
+    # build:
+    #   context: ./frontend
+    #   args:
+    #     VITE_API_URL: ${VITE_API_URL}
     container_name: my-frontend
     ports:
       - "5173:80"

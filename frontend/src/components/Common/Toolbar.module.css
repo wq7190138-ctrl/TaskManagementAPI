@@ -1,0 +1,125 @@
+/* Toolbar.module.css */
+
+/* 工具栏容器 */
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background-color: #fafafa;
+    border-radius: 8px;
+    border: 1px solid #e8e8e8;
+}
+
+/* 搜索框 */
+.searchInput {
+    padding: 6px 12px;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 200px;
+}
+
+.searchInput:focus {
+    border-color: #69b1ff;
+    box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.1);
+}
+
+.searchInput::placeholder {
+    color: #bfbfbf;
+}
+
+/* 通用按钮 */
+.btn {
+    padding: 6px 16px;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    background-color: #ffffff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.1s;
+}
+
+.btn:hover:not(:disabled) {
+    border-color: #69b1ff;
+    color: #1677ff;
+}
+
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+/* 主要按钮（新增） */
+.btnPrimary {
+    background-color: #1677ff;
+    color: #ffffff;
+    border-color: #1677ff;
+}
+
+.btnPrimary:hover:not(:disabled) {
+    background-color: #4096ff;
+    border-color: #4096ff;
+    color: #ffffff;
+}
+
+/* 危险按钮（删除） */
+.btnDanger {
+    border-color: #ff4d4f;
+    color: #ff4d4f;
+}
+
+.btnDanger:hover:not(:disabled) {
+    border-color: #ff7875;
+    color: #ff7875;
+}
+
+/* 状态按钮 */
+.btnStatus {
+    border-color: #d9d9d9;
+}
+
+.btnStatus:hover:not(:disabled) {
+    border-color: #69b1ff;
+    color: #1677ff;
+}
+
+/* 选中的状态按钮（作为指示） */
+.btnStatusActive {
+    background-color: #e6f7ff;
+    border-color: #1677ff;
+    color: #1677ff;
+}
+
+/* 刷新按钮 */
+.btnRefresh {
+    border-color: #d9d9d9;
+}
+
+.btnRefresh:hover:not(:disabled) {
+    border-color: #69b1ff;
+    color: #1677ff;
+}
+
+/* 选中信息 */
+.selectedInfo {
+    margin-left: 8px;
+    font-size: 14px;
+    color: #8c8c8c;
+}
+
+.selectedInfo strong {
+    color: #1677ff;
+}

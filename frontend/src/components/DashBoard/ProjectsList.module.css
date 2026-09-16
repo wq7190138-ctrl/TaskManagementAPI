@@ -1,0 +1,76 @@
+/* ProjectsList.module.css */
+
+/* 表格基础样式 */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* 表头 */
+.table th {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 2px solid #e0e0e0;
+    font-weight: 600;
+}
+
+/* 单元格 */
+.table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* 列宽 */
+.colName {
+    width: 20%;
+}
+.colDate {
+    width: 20%;
+}
+.colStatus {
+    width: 15%;
+}
+.colStatusDate {
+    width: 20%;
+}
+.colAction {
+    width: 10%;
+}
+
+/* 数据行 */
+.row {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+/* 数据行 hover 效果 */
+.row:hover {
+    background-color: #e6f7ff !important;  /* 鼠标悬停时 */
+}
+
+/* 选中行（更蓝） */
+.rowSelected {
+    cursor: pointer;
+    background-color: #bae0ff !important;  /* 比 hover 更蓝 */
+    transition: background-color 0.2s;
+}
+
+/* 选中行 hover 时保持选中颜色（或稍微加深） */
+.rowSelected:hover {
+    background-color: #91caff !important;
+}
+
+/* 操作列按钮 */
+.actionBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.actionBtn:hover {
+    background-color: #f0f0f0;
+}

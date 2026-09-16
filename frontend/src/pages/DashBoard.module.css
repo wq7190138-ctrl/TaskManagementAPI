@@ -1,0 +1,67 @@
+/* DashBoard.module.css */
+
+.container {
+    padding: 24px 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.titleIcon {
+    margin-right: 8px;
+}
+
+.loadingWrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+.loadingText {
+    font-size: 16px;
+    color: #8c8c8c;
+}
+
+.errorWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    gap: 12px;
+}
+
+.errorText {
+    color: #ff4d4f;
+    font-size: 16px;
+}
+
+.errorButton {
+    padding: 8px 24px;
+    border: 1px solid #1677ff;
+    border-radius: 6px;
+    background: #fff;
+    color: #1677ff;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.errorButton:hover {
+    background: #1677ff;
+    color: #fff;
+}

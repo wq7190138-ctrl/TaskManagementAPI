@@ -1,0 +1,82 @@
+/* 遮罩层：覆盖全屏，背景变暗 */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+/* 弹窗主体：白色背景，居中 */
+.modal {
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    min-width: 400px;
+    max-width: 500px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 表单样式 */
+.formGroup {
+    margin-bottom: 16px;
+}
+
+.formGroup label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.formGroup input,
+.formGroup textarea,
+.formGroup select {
+    width: 100%;
+    padding: 8px 12px 12px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.formGroup textarea {
+    resize: vertical;
+}
+
+/* 按钮组 */
+.modalActions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+.modalActions button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.modalActions button[type="button"] {
+    background: #e0e0e0;
+}
+
+.modalActions button[type="submit"] {
+    background: #007bff;
+    color: white;
+}
+
+.modalActions button[type="submit"]:hover {
+    background: #0056b3;
+}
+
+.modalActions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
