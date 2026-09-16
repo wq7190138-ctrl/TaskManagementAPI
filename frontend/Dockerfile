@@ -1,5 +1,5 @@
 # 阶段1：构建
-FROM docker.1ms.run/library/node:20-alpine AS build
+FROM node:20-alpine AS build
 WORKDIR /app
 COPY package*.json ./
 
