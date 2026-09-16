@@ -108,7 +108,7 @@ jobs:
 
       # 👇 生成 .env 文件（注入到 Runner 工作目录）
       - name: Create .env file
-        shell: pwsh
+        shell: powershell
         run: |
           @"
           DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
