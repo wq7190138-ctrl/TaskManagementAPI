@@ -123,11 +123,11 @@ jobs:
           "@ | Out-File -FilePath .env -Encoding utf8
 
       - name: Pull latest images
-        shell: pwsh
+        shell: powershell
         run: |
           docker pull ${{ secrets.DOCKER_USERNAME }}/taskapi:latest
           docker pull ${{ secrets.DOCKER_USERNAME }}/rabbitmqconsumer:latest
 
       - name: Deploy with docker-compose
-        shell: pwsh
+        shell: powershell
         run: docker compose up -d
