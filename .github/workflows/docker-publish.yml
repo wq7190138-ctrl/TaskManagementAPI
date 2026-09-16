@@ -158,4 +158,4 @@ jobs:
             docker logs my-taskapi-compose-1 --tail 50
             throw "API 健康检查失败"
           }
-          Write-Host "✅ 部署成功，API 健康检查通过"  
+          Write-Host "✅ 部署成功，API 健康检查通过"
