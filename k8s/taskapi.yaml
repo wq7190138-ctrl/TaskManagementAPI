@@ -1,0 +1,94 @@
+# ============================================================
+# ConfigMap：非敏感配置
+# ============================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: taskapi-config
+data:
+  ASPNETCORE_ENVIRONMENT: "Development"
+  ASPNETCORE_URLS: "http://+:8080"
+  RabbitMQ__Host: "host.docker.internal"
+  RabbitMQ__Port: "5672"
+
+---
+# ============================================================
+# Secret：敏感信息（密码）
+# ============================================================
+apiVersion: v1
+kind: Secret
+metadata:
+  name: taskapi-secret
+type: Opaque
+stringData:
+  ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=mydb;Username=admin;Password=123456"
+  Redis__ConnectionString: "redis:6379,password=,defaultDatabase=0"
+  RabbitMQ__Host: "rabbitmq"
+  RabbitMQ__UserName: "admin"
+  RabbitMQ__Password: "123456"
+
+---
+# ============================================================
+# Deployment：API 服务
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskapi
+  labels:
+    app: taskapi
+spec:
+  replicas: 2                  # 👈 起 2 个副本
+  selector:
+    matchLabels:
+      app: taskapi
+  template:
+    metadata:
+      labels:
+        app: taskapi
+    spec:
+      containers:
+        - name: taskapi
+          image: wq652/taskapi:latest    # 👈 用你 Docker Hub 的镜像
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: taskapi-config     # 👈 从 ConfigMap 注入
+            - secretRef:
+                name: taskapi-secret     # 👈 从 Secret 注入
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /healthz/live
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz/ready
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+
+---
+# ============================================================
+# Service：给 API 提供稳定入口
+# ============================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: taskapi-svc
+spec:
+  type: ClusterIP              # 集群内部访问即可，外部用 port-forward
+  selector:
+    app: taskapi
+  ports:
+    - port: 8080
+      targetPort: 8080
