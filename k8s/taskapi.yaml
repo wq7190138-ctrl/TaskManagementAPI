@@ -49,7 +49,8 @@ spec:
     spec:
       containers:
         - name: taskapi
-          image: wq652/taskapi:latest    # 👈 用你 Docker Hub 的镜像
+          image: wq652/taskapi:IMAGE_TAG    # 👈 用占位符
+          imagePullPolicy: Always           # 👈 每次拉新
           ports:
             - containerPort: 8080
           envFrom:

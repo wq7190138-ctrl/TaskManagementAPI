@@ -46,7 +46,8 @@ spec:
     spec:
       containers:
         - name: consumer
-          image: wq652/rabbitmqconsumer:latest
+          image: wq652/rabbitmqconsumer:IMAGE_TAG
+          imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: consumer-config

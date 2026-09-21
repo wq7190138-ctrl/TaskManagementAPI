@@ -16,7 +16,8 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: wq652/frontend:latest
+          image: wq652/frontend:IMAGE_TAG
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
           resources:
