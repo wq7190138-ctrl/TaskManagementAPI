@@ -97,7 +97,7 @@ jobs:
   # ⑤ 部署任务（needs：等上面三个全部成功才执行）
   # ============================================================
   deploy:
-    name: Deploy to Server
+    name: Deploy to K8s
     needs: [ build-api, build-consumer, build-frontend ]
     runs-on: self-hosted
     if: github.ref == 'refs/heads/main'
@@ -106,54 +106,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create .env file
+      # 👇 更新 K8s 里的镜像 tag（用 SHA 精确版本）
+      - name: Update image tags
         shell: powershell
         run: |
-          $env_content = "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}`n"
-          $env_content += "TAG=${{ github.sha }}`n"
-          $env_content += "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}`n"
-          $env_content += "POSTGRES_USER=${{ secrets.POSTGRES_USER }}`n"
-          $env_content += "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}`n"
-          $env_content += "POSTGRES_DB=${{ secrets.POSTGRES_DB }}`n"
-          $env_content += "RABBITMQ_USER=${{ secrets.RABBITMQ_USER }}`n"
-          $env_content += "RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}`n"
-          $env_content += "ASPNETCORE_ENVIRONMENT=${{ secrets.ASPNETCORE_ENVIRONMENT }}`n"
-          $env_content += "VITE_API_URL=${{ secrets.VITE_API_URL }}`n"
-          [System.IO.File]::WriteAllText("$PWD\.env", $env_content)
+          $tag = "${{ github.sha }}"
+          kubectl set image deployment/taskapi taskapi=${{ secrets.DOCKER_USERNAME }}/taskapi:$tag
+          kubectl set image deployment/consumer consumer=${{ secrets.DOCKER_USERNAME }}/rabbitmqconsumer:$tag
+          kubectl set image deployment/frontend frontend=${{ secrets.DOCKER_USERNAME }}/frontend:$tag
 
-      - name: Pull latest images
+      # 👇 等待滚动更新完成
+      - name: Wait for rollout
         shell: powershell
         run: |
-          $ErrorActionPreference = "Stop"
-          $maxRetries = 3
-          $images = @(
-            "${{ secrets.DOCKER_USERNAME }}/taskapi:${{ github.sha }}",
-            "${{ secrets.DOCKER_USERNAME }}/rabbitmqconsumer:${{ github.sha }}"
-            "${{ secrets.DOCKER_USERNAME }}/frontend:${{ github.sha }}"
-          )
-          foreach ($img in $images) {
-            $success = $false
-            for ($i = 1; $i -le $maxRetries; $i++) {
-              Write-Host "Attempt $i to pull $img"
-              docker pull $img
-              if ($LASTEXITCODE -eq 0) { $success = $true; break }
-              Write-Host "Pull failed, retrying in 5 seconds..."
-              Start-Sleep -Seconds 5
-            }
-            if (-not $success) { throw "Failed to pull $img after $maxRetries attempts" }
-          }
+          kubectl rollout status deployment/taskapi --timeout=120s
+          kubectl rollout status deployment/consumer --timeout=120s
+          kubectl rollout status deployment/frontend --timeout=120s
 
-      - name: Deploy with docker-compose
+      # 👇 验证 Pod 状态
+      - name: Verify pods
         shell: powershell
         run: |
-          docker compose up -d
-
-          Start-Sleep -Seconds 15
-
-          $health = docker inspect --format='{{.State.Health.Status}}' my-taskapi-compose-1 2>$null
-          if ($health -ne "healthy") {
-            Write-Host "Health check status: $health"
-            docker logs my-taskapi-compose-1 --tail 50
-            throw "API health check failed"
-          }
-          Write-Host "Deployment successful. API is healthy."
+          kubectl get pods
+          Write-Host "Deployment successful."
