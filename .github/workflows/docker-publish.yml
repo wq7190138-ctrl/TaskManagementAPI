@@ -97,56 +97,36 @@ jobs:
   # ⑤ 部署任务（needs：等上面三个全部成功才执行）
   # ============================================================
   deploy:
-    name: Deploy to K8s
+    name: Deploy to K3s
     needs: [ build-api, build-consumer, build-frontend ]
     runs-on: self-hosted
     if: github.ref == 'refs/heads/main'
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # 👇 用 sed 把占位符替换成当前 commit SHA
-      - name: Replace image tags in manifests
+      - name: Deploy via SSH to Ubuntu K3s
         shell: powershell
         run: |
-          $tag = "${{ github.sha }}"
-          $user = "${{ secrets.DOCKER_USERNAME }}"
+          # 1. 保存 SSH 私钥
+          $keyPath = "$env:TEMP\ubuntu_key"
+          $key = "${{ secrets.UBUNTU_SSH_KEY }}"
+          [System.IO.File]::WriteAllText($keyPath, $key)
           
-          # 替换 taskapi.yaml
-          (Get-Content k8s/taskapi.yaml) `
-            -replace "wq652/taskapi:IMAGE_TAG", "$user/taskapi:$tag" `
-            | Set-Content k8s/taskapi.yaml
+          # 2. 设置私钥权限（Windows 上 ssh 要求私钥权限严格）
+          icacls $keyPath /inheritance:r /grant:r "$($env:USERNAME):(R)" | Out-Null
           
-          # 替换 consumer.yaml
-          (Get-Content k8s/consumer.yaml) `
-            -replace "wq652/rabbitmqconsumer:IMAGE_TAG", "$user/rabbitmqconsumer:$tag" `
-            | Set-Content k8s/consumer.yaml
+          # 3. 通过 SSH 执行远程命令
+          $remoteCmd = @"
+            cd ~/TaskManagementAPI &&
+            kubectl set image deployment/taskapi taskapi=wq652/taskapi:${{ github.sha }} &&
+            kubectl set image deployment/consumer consumer=wq652/rabbitmqconsumer:${{ github.sha }} &&
+            kubectl set image deployment/frontend frontend=wq652/frontend:${{ github.sha }} &&
+            kubectl rollout status deployment/taskapi --timeout=120s &&
+            kubectl rollout status deployment/consumer --timeout=120s &&
+            kubectl rollout status deployment/frontend --timeout=120s &&
+            kubectl get pods
+          "@
           
-          # 替换 frontend.yaml
-          (Get-Content k8s/frontend.yaml) `
-            -replace "wq652/frontend:IMAGE_TAG", "$user/frontend:$tag" `
-            | Set-Content k8s/frontend.yaml
-
-      # 👇 应用到 K8s（对比差异，自动滚动更新）
-      - name: Apply manifests
-        shell: powershell
-        run: |
-          kubectl apply -f k8s/taskapi.yaml
-          kubectl apply -f k8s/consumer.yaml
-          kubectl apply -f k8s/frontend.yaml
-
-      # 👇 等待滚动更新完成
-      - name: Wait for rollout
-        shell: powershell
-        run: |
-          kubectl rollout status deployment/taskapi --timeout=120s
-          kubectl rollout status deployment/consumer --timeout=120s
-          kubectl rollout status deployment/frontend --timeout=120s
-
-      # 👇 验证结果
-      - name: Verify
-        shell: powershell
-        run: |
-          kubectl get pods
-          Write-Host "Deployment completed successfully."
+          ssh -i $keyPath -o StrictHostKeyChecking=no wq@${{ secrets.UBUNTU_HOST }} $remoteCmd
+          
+          # 4. 清理
+          Remove-Item $keyPath -Force
