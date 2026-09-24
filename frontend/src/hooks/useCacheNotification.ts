@@ -11,7 +11,7 @@ export function useCacheNotification() {
 
     useEffect(() => {
         // 建立 SignalR 连接
-        const API_BASE = import.meta.env.VITE_API_BASE_URL
+        const API_BASE = ''
         const connection = new signalR.HubConnectionBuilder()
             .withUrl(`${API_BASE}/api/cacheHub`)
             .withAutomaticReconnect() // 自动重连

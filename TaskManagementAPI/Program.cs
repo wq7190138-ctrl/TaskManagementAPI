@@ -53,10 +53,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReactApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173")  // 前端开发地址
+            policy.SetIsOriginAllowed(_ => true)   // 👈 允许所有来源
                   .AllowAnyHeader()
                   .AllowAnyMethod()
-                  .AllowCredentials();  // SignalR 必须 AllowCredentials
+                  .AllowCredentials();
         });
 });
 // 注册 Redis 服务
