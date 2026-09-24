@@ -106,27 +106,21 @@ jobs:
       - name: Deploy via SSH to Ubuntu K3s
         shell: powershell
         run: |
-          # 1. 保存 SSH 私钥
-          $keyPath = "$env:TEMP\ubuntu_key"
-          $key = "${{ secrets.UBUNTU_SSH_KEY }}"
-          [System.IO.File]::WriteAllText($keyPath, $key)
+          # 1. 生成一个唯一的临时文件路径（避免旧文件权限问题）
+          $keyPath = Join-Path $env:TEMP "ubuntu_key_$([System.Guid]::NewGuid().ToString('N'))"
           
-          # 2. 设置私钥权限（Windows 上 ssh 要求私钥权限严格）
+          # 2. 从 Base64 解码私钥
+          $keyB64 = "${{ secrets.UBUNTU_SSH_KEY }}"
+          $keyBytes = [System.Convert]::FromBase64String($keyB64)
+          [System.IO.File]::WriteAllBytes($keyPath, $keyBytes)
+          
+          # 3. 设置私钥权限
           icacls $keyPath /inheritance:r /grant:r "$($env:USERNAME):(R)" | Out-Null
           
-          # 3. 通过 SSH 执行远程命令
-          $remoteCmd = @"
-            cd ~/TaskManagementAPI &&
-            kubectl set image deployment/taskapi taskapi=wq652/taskapi:${{ github.sha }} &&
-            kubectl set image deployment/consumer consumer=wq652/rabbitmqconsumer:${{ github.sha }} &&
-            kubectl set image deployment/frontend frontend=wq652/frontend:${{ github.sha }} &&
-            kubectl rollout status deployment/taskapi --timeout=120s &&
-            kubectl rollout status deployment/consumer --timeout=120s &&
-            kubectl rollout status deployment/frontend --timeout=120s &&
-            kubectl get pods
-          "@
+          # 4. SSH 执行远程命令
+          $remoteCmd = "kubectl set image deployment/taskapi taskapi=wq652/taskapi:${{ github.sha }} && kubectl set image deployment/consumer consumer=wq652/rabbitmqconsumer:${{ github.sha }} && kubectl set image deployment/frontend frontend=wq652/frontend:${{ github.sha }} && kubectl rollout status deployment/taskapi --timeout=120s && kubectl rollout status deployment/consumer --timeout=120s && kubectl rollout status deployment/frontend --timeout=120s && kubectl get pods"
           
           ssh -i $keyPath -o StrictHostKeyChecking=no wq@${{ secrets.UBUNTU_HOST }} $remoteCmd
           
-          # 4. 清理
-          Remove-Item $keyPath -Force
+          # 5. 清理
+          Remove-Item $keyPath -Force -ErrorAction SilentlyContinue
