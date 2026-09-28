@@ -103,26 +103,24 @@ jobs:
     if: github.ref == 'refs/heads/main'
 
     steps:
-      - name: Deploy via SSH to Ubuntu K3s
-        shell: powershell
-        run: |
-          # ... （前面的私钥处理不变）
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-          # 👇 远程命令分两步：
-          # 第一步：应用所有 YAML（处理结构性变更）
-          # 第二步：更新镜像版本（处理代码变更）
-          $remoteCmd = @"
-            cd ~/TaskManagementAPI &&
-            git pull &&
-            kubectl apply -f k8s/middleware.yaml &&
-            kubectl apply -f k8s/taskapi.yaml &&
-            kubectl apply -f k8s/consumer.yaml &&
-            kubectl apply -f k8s/frontend.yaml &&
-            kubectl apply -f k8s/ingress.yaml &&
-            kubectl set image deployment/taskapi taskapi=wq652/taskapi:${{ github.sha }} &&
-            kubectl set image deployment/consumer consumer=wq652/rabbitmqconsumer:${{ github.sha }} &&
-            kubectl set image deployment/frontend frontend=wq652/frontend:${{ github.sha }} &&
-            kubectl rollout status deployment/taskapi --timeout=120s &&
-            kubectl rollout status deployment/consumer --timeout=120s &&
-            kubectl rollout status deployment/frontend --timeout=120s
-          "@
+      - name: Apply K8s manifests
+        run: |
+          kubectl apply -f k8s/
+
+      - name: Update images
+        run: |
+          kubectl set image deployment/taskapi taskapi=wq652/taskapi:${{ github.sha }}
+          kubectl set image deployment/consumer consumer=wq652/rabbitmqconsumer:${{ github.sha }}
+          kubectl set image deployment/frontend frontend=wq652/frontend:${{ github.sha }}
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/taskapi --timeout=120s
+          kubectl rollout status deployment/consumer --timeout=120s
+          kubectl rollout status deployment/frontend --timeout=120s
+
+      - name: Show pods
+        run: kubectl get pods
